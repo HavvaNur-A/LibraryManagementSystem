@@ -1,0 +1,30 @@
+package com.library.controller;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.library.model.LibraryData;
+import java.io.*;
+
+public class LibraryRepository {
+    private static final String DB_FILE = "library_data.json";
+    private final Gson gson = new GsonBuilder()
+        .setPrettyPrinting()
+        .create();
+
+    public void save(LibraryData data) throws IOException {
+        try (FileWriter writer = new FileWriter(DB_FILE)) {
+            gson.toJson(data, writer);
+        }
+    }
+
+    public LibraryData load() throws IOException {
+        File file = new File(DB_FILE);
+        if (!file.exists()) {
+            return null;
+        }
+        
+        try (FileReader reader = new FileReader(file)) {
+            return gson.fromJson(reader, LibraryData.class);
+        }
+    }
+}

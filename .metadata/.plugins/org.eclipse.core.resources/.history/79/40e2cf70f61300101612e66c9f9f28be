@@ -1,0 +1,30 @@
+package com.library.controller;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.library.model.LibraryData;
+import java.io.*;
+
+public class LibraryRepository {
+    private static final String DB_FILE = "library_data.json"; // JSON dosya adı
+    private final Gson gson = new GsonBuilder() // GsonBuilder doğrudan kullanılıyor
+        .setPrettyPrinting() // Okunabilir JSON çıktısı için
+        .create(); // Gson nesnesi oluşturuluyor
+
+    public void save(LibraryData data) throws IOException {
+        try (FileWriter writer = new FileWriter(DB_FILE)) { // Kaynak otomatik kapatma
+            gson.toJson(data, writer); // Java objesini JSON'a dönüştürüp dosyaya yaz
+        }
+    }
+
+    public LibraryData load() throws IOException {
+        File file = new File(DB_FILE);
+        if (!file.exists()) { // Dosya yoksa null dön
+            return null;
+        }
+        
+        try (FileReader reader = new FileReader(file)) { // Kaynak otomatik kapatma
+            return gson.toJson(reader, LibraryData.class); // JSON'dan Java objesine dönüştür
+        }
+    }
+}

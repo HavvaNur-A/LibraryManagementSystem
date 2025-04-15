@@ -1,0 +1,30 @@
+package com.library.model;
+
+import java.io.Serializable;
+
+public class Member implements Serializable {
+    // Serileştirme için versiyon tanımlama (önerilen)
+    private static final long serialVersionUID = 1L;
+    
+    private String id;
+    private String name;
+    private String email;
+    
+    // Getter methods
+    public String getId() {
+        return id;
+    }
+    
+    public String getName() {
+        return name;
+    }
+    
+    public String getEmail() {
+        return email;
+    }
+    
+    @Override
+    public String toString() {
+        return name + " (" + email + ")";
+    }
+}

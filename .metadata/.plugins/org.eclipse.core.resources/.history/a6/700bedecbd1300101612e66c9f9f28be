@@ -1,0 +1,181 @@
+package com.library.controller;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.library.model.Book;
+import com.library.model.Member;
+import com.library.model.LibraryData;
+import javax.swing.JOptionPane;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class LibraryController {
+    private LibraryData data;
+    private final LibraryRepository repository;
+    
+    public LibraryController() {
+        this.repository = new LibraryRepository();
+        try {
+            this.data = repository.load();
+            if (this.data == null) {
+                initializeEmptyDatabase();
+            }
+        } catch (IOException e) {
+            showError("Veritabanı yüklenemedi. Boş bir veritabanı oluşturuluyor.");
+            initializeEmptyDatabase();
+        }
+    }
+    
+    private void initializeEmptyDatabase() {
+        this.data = new LibraryData(
+            new ArrayList<>(),
+            new ArrayList<>()
+        );
+        // Örnek veriler (isteğe bağlı)
+        data.getBooks().add(new Book("B001", "1984", "George Orwell"));
+        data.getMembers().add(new Member("M001", "Ahmet Yılmaz", "ahmet@example.com"));
+        saveToDisk();
+    }
+    
+    private void saveToDisk() {
+        try {
+            repository.save(data);
+        } catch (IOException e) {
+            showError("Veri kaydedilemedi: " + e.getMessage());
+        }
+    }
+    
+    // Kitap İşlemleri
+    public boolean addBook(Book book) {
+        if (book == null || findBookById(book.getId()) != null) {
+            return false;
+        }
+        data.getBooks().add(book);
+        saveToDisk();
+        return true;
+    }
+    
+    public List<Book> getAllBooks() {
+        return new ArrayList<>(data.getBooks());
+    }
+    
+    public Book findBookById(String id) {
+        return data.getBooks().stream()
+                   .filter(book -> book.getId().equalsIgnoreCase(id))
+                   .findFirst()
+                   .orElse(null);
+    }
+    
+    public boolean deleteBook(String id) {
+        Book book = findBookById(id);
+        if (book != null) {
+            data.getBooks().remove(book);
+            saveToDisk();
+            return true;
+        }
+        return false;
+    }
+    
+    public List<Book> searchBooks(String query) {
+        String lowerQuery = query.toLowerCase();
+        List<Book> results = new ArrayList<>();
+        for (Book book : data.getBooks()) {
+            if (book.getId().toLowerCase().contains(lowerQuery) || 
+                book.getTitle().toLowerCase().contains(lowerQuery) ||
+                book.getAuthor().toLowerCase().contains(lowerQuery)) {
+                results.add(book);
+            }
+        }
+        return results;
+    }
+    
+    // Üye İşlemleri
+    public boolean addMember(Member member) {
+        if (member == null || findMemberById(member.getId()) != null) {
+            return false;
+        }
+        data.getMembers().add(member);
+        saveToDisk();
+        return true;
+    }
+    
+    public List<Member> getAllMembers() {
+        return new ArrayList<>(data.getMembers());
+    }
+    
+    public Member findMemberById(String id) {
+        return data.getMembers().stream()
+                   .filter(member -> member.getId().equalsIgnoreCase(id))
+                   .findFirst()
+                   .orElse(null);
+    }
+    
+    public boolean deleteMember(String id) {
+        Member member = findMemberById(id);
+        if (member != null) {
+            data.getMembers().remove(member);
+            saveToDisk();
+            return true;
+        }
+        return false;
+    }
+    
+    public List<Member> searchMembers(String query) {
+        String lowerQuery = query.toLowerCase();
+        List<Member> results = new ArrayList<>();
+        for (Member member : data.getMembers()) {
+            if (member.getId().toLowerCase().contains(lowerQuery) || 
+                member.getName().toLowerCase().contains(lowerQuery) ||
+                member.getEmail().toLowerCase().contains(lowerQuery)) {
+                results.add(member);
+            }
+        }
+        return results;
+    }
+    
+    // Ödünç Alma İşlemleri
+    public boolean borrowBook(String bookId, String memberId) {
+        Book book = findBookById(bookId);
+        Member member = findMemberById(memberId);
+        
+        if (book == null || member == null || !book.isAvailable()) {
+            return false;
+        }
+        
+        book.setAvailable(false);
+        saveToDisk();
+        return true;
+    }
+    
+    // Overloaded method for compatibility with UI
+    public boolean borrowBook(String bookId) {
+        Book book = findBookById(bookId);
+        
+        if (book == null || !book.isAvailable()) {
+            return false;
+        }
+        
+        book.setAvailable(false);
+        saveToDisk();
+        return true;
+    }
+    
+    public boolean returnBook(String bookId) {
+        Book book = findBookById(bookId);
+        if (book == null || book.isAvailable()) {
+            return false;
+        }
+        
+        book.setAvailable(true);
+        saveToDisk();
+        return true;
+    }
+    
+    private void showError(String message) {
+        JOptionPane.showMessageDialog(null, 
+            message,
+            "Hata",
+            JOptionPane.ERROR_MESSAGE);
+    }
+}

@@ -1,0 +1,377 @@
+package com.library.ui;
+
+import com.library.controller.LibraryController;
+import com.library.model.Book;
+import com.library.model.Member;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.List;
+
+public class MainFrame extends JFrame {
+    private LibraryController controller;
+    
+    private JTabbedPane tabbedPane;
+    
+    // Book Panel components
+    private JPanel bookPanel;
+    private JTextField bookIdField, bookTitleField, bookAuthorField;
+    private JButton addBookButton, listBooksButton;
+    private JTextArea bookTextArea;
+    
+    // Member Panel components
+    private JPanel memberPanel;
+    private JTextField memberIdField, memberNameField, memberEmailField;
+    private JButton addMemberButton, listMembersButton;
+    private JTextArea memberTextArea;
+    
+    // Transaction Panel components
+    private JPanel transactionPanel;
+    private JTextField borrowBookIdField, borrowMemberIdField;
+    private JButton borrowButton, returnButton;
+    private JTextArea transactionTextArea;
+    
+    public MainFrame() {
+        controller = new LibraryController();
+        initializeUI();
+    }
+    
+    private void initializeUI() {
+        setTitle("Library Management System");
+        setSize(800, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        
+        tabbedPane = new JTabbedPane();
+        
+        // Book Management Panel
+        createBookPanel();
+        tabbedPane.addTab("Book Management", bookPanel);
+        
+        // Member Management Panel
+        createMemberPanel();
+        tabbedPane.addTab("Member Management", memberPanel);
+        
+        // Transaction Panel
+        createTransactionPanel();
+        tabbedPane.addTab("Transactions", transactionPanel);
+        
+        add(tabbedPane);
+    }
+    
+    private void createBookPanel() {
+        bookPanel = new JPanel(new BorderLayout());
+        
+        // Form panel
+        JPanel formPanel = new JPanel(new GridLayout(4, 2, 5, 5));
+        formPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        formPanel.add(new JLabel("Book ID:"));
+        bookIdField = new JTextField();
+        formPanel.add(bookIdField);
+        
+        formPanel.add(new JLabel("Title:"));
+        bookTitleField = new JTextField();
+        formPanel.add(bookTitleField);
+        
+        formPanel.add(new JLabel("Author:"));
+        bookAuthorField = new JTextField();
+        formPanel.add(bookAuthorField);
+        
+        addBookButton = new JButton("Add Book");
+        listBooksButton = new JButton("List Books");
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        buttonPanel.add(addBookButton);
+        buttonPanel.add(listBooksButton);
+        
+        formPanel.add(buttonPanel);
+        
+        // Text area
+        bookTextArea = new JTextArea();
+        bookTextArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(bookTextArea);
+        
+        // Panel layout
+        bookPanel.add(formPanel, BorderLayout.NORTH);
+        bookPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        // Event listeners
+        addBookButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                addBook();
+            }
+        });
+        
+        listBooksButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                listBooks();
+            }
+        });
+    }
+    
+    private void addBook() {
+        String id = bookIdField.getText().trim();
+        String title = bookTitleField.getText().trim();
+        String author = bookAuthorField.getText().trim();
+        
+        if (id.isEmpty() || title.isEmpty() || author.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please fill all fields!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        Book book = new Book(id, title, author);
+        controller.addBook(book);
+        
+        JOptionPane.showMessageDialog(this, "Book added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+        clearBookFields();
+    }
+    
+    private void listBooks() {
+        List<Book> books = controller.getAllBooks();
+        StringBuilder sb = new StringBuilder();
+        
+        if (books.isEmpty()) {
+            sb.append("No books available in the library.");
+        } else {
+            sb.append("Library Books:\n\n");
+            for (Book book : books) {
+                sb.append("ID: ").append(book.getId()).append("\n");
+                sb.append("Title: ").append(book.getTitle()).append("\n");
+                sb.append("Author: ").append(book.getAuthor()).append("\n");
+                sb.append("Status: ").append(book.isAvailable() ? "Available" : "Borrowed").append("\n\n");
+            }
+        }
+        
+        bookTextArea.setText(sb.toString());
+    }
+    
+    private void clearBookFields() {
+        bookIdField.setText("");
+        bookTitleField.setText("");
+        bookAuthorField.setText("");
+    }
+    
+    private void createMemberPanel() {
+        memberPanel = new JPanel(new BorderLayout());
+        
+        // Form panel
+        JPanel formPanel = new JPanel(new GridLayout(4, 2, 5, 5));
+        formPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        formPanel.add(new JLabel("Member ID:"));
+        memberIdField = new JTextField();
+        formPanel.add(memberIdField);
+        
+        formPanel.add(new JLabel("Full Name:"));
+        memberNameField = new JTextField();
+        formPanel.add(memberNameField);
+        
+        formPanel.add(new JLabel("Email:"));
+        memberEmailField = new JTextField();
+        formPanel.add(memberEmailField);
+        
+        addMemberButton = new JButton("Add Member");
+        listMembersButton = new JButton("List Members");
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        buttonPanel.add(addMemberButton);
+        buttonPanel.add(listMembersButton);
+        
+        formPanel.add(buttonPanel);
+        
+        // Text area
+        memberTextArea = new JTextArea();
+        memberTextArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(memberTextArea);
+        
+        // Panel layout
+        memberPanel.add(formPanel, BorderLayout.NORTH);
+        memberPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        // Event listeners
+        addMemberButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                addMember();
+            }
+        });
+        
+        listMembersButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                listMembers();
+            }
+        });
+    }
+    
+    private void addMember() {
+        String id = memberIdField.getText().trim();
+        String name = memberNameField.getText().trim();
+        String email = memberEmailField.getText().trim();
+        
+        if (id.isEmpty() || name.isEmpty() || email.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please fill all fields!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        Member member = new Member(id, name, email);
+        controller.addMember(member);
+        
+        JOptionPane.showMessageDialog(this, "Member added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+        clearMemberFields();
+    }
+    
+    private void listMembers() {
+        List<Member> members = controller.getAllMembers();
+        StringBuilder sb = new StringBuilder();
+        
+        if (members.isEmpty()) {
+            sb.append("No members registered.");
+        } else {
+            sb.append("Registered Members:\n\n");
+            for (Member member : members) {
+                sb.append("ID: ").append(member.getId()).append("\n");
+                sb.append("Name: ").append(member.getName()).append("\n");
+                sb.append("Email: ").append(member.getEmail()).append("\n\n");
+            }
+        }
+        
+        memberTextArea.setText(sb.toString());
+    }
+    
+    private void clearMemberFields() {
+        memberIdField.setText("");
+        memberNameField.setText("");
+        memberEmailField.setText("");
+    }
+    
+    private void createTransactionPanel() {
+        transactionPanel = new JPanel(new BorderLayout());
+        
+        // Form panel
+        JPanel formPanel = new JPanel(new GridLayout(3, 2, 5, 5));
+        formPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        formPanel.add(new JLabel("Book ID:"));
+        borrowBookIdField = new JTextField();
+        formPanel.add(borrowBookIdField);
+        
+        formPanel.add(new JLabel("Member ID:"));
+        borrowMemberIdField = new JTextField();
+        formPanel.add(borrowMemberIdField);
+        
+        borrowButton = new JButton("Borrow Book");
+        returnButton = new JButton("Return Book");
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        buttonPanel.add(borrowButton);
+        buttonPanel.add(returnButton);
+        
+        formPanel.add(buttonPanel);
+        
+        // Text area
+        transactionTextArea = new JTextArea();
+        transactionTextArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(transactionTextArea);
+        
+        // Panel layout
+        transactionPanel.add(formPanel, BorderLayout.NORTH);
+        transactionPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        // Event listeners
+        borrowButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                borrowBook();
+            }
+        });
+        
+        returnButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                returnBook();
+            }
+        });
+    }
+    
+    private void borrowBook() {
+        String bookId = borrowBookIdField.getText().trim();
+        String memberId = borrowMemberIdField.getText().trim();
+        
+        if (bookId.isEmpty() || memberId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please fill all fields!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        Book book = controller.findBookById(bookId);
+        Member member = controller.findMemberById(memberId);
+        
+        if (book == null) {
+            JOptionPane.showMessageDialog(this, "Book not found!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        if (member == null) {
+            JOptionPane.showMessageDialog(this, "Member not found!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        if (!book.isAvailable()) {
+            JOptionPane.showMessageDialog(this, "Book is already borrowed!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        if (controller.borrowBook(bookId)) {
+            transactionTextArea.append("Book '" + book.getTitle() + "' borrowed by " + member.getName() + ".\n");
+            clearTransactionFields();
+        } else {
+            JOptionPane.showMessageDialog(this, "Borrow operation failed!", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void returnBook() {
+        String bookId = borrowBookIdField.getText().trim();
+        
+        if (bookId.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter book ID!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        Book book = controller.findBookById(bookId);
+        
+        if (book == null) {
+            JOptionPane.showMessageDialog(this, "Book not found!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        if (book.isAvailable()) {
+            JOptionPane.showMessageDialog(this, "Book is already in library!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        if (controller.returnBook(bookId)) {
+            transactionTextArea.append("Book '" + book.getTitle() + "' returned successfully.\n");
+            clearTransactionFields();
+        } else {
+            JOptionPane.showMessageDialog(this, "Return operation failed!", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void clearTransactionFields() {
+        borrowBookIdField.setText("");
+        borrowMemberIdField.setText("");
+    }
+    
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new MainFrame().setVisible(true);
+            }
+        });
+    }
+}

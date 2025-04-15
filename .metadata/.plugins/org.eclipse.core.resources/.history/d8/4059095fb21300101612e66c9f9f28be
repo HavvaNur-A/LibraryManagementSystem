@@ -1,0 +1,121 @@
+package com.library.controller;
+
+import com.library.model.Book;
+import com.library.model.Member;
+import java.util.ArrayList;
+import java.util.List;
+
+public class LibraryController {
+    private List<Book> books;
+    private List<Member> members;
+    
+    public LibraryController() {
+        this.books = new ArrayList<>();
+        this.members = new ArrayList<>();
+        initializeSampleData();
+    }
+    
+    private void initializeSampleData() {
+        // Örnek kitap verileri
+        addBook(new Book("B001", "1984", "George Orwell"));
+        addBook(new Book("B002", "Animal Farm", "George Orwell"));
+        addBook(new Book("B003", "Crime and Punishment", "Fyodor Dostoevsky"));
+        
+        // Örnek üye verileri
+        addMember(new Member("M001", "John Doe", "john@example.com"));
+        addMember(new Member("M002", "Jane Smith", "jane@example.com"));
+    }
+    
+    // Kitap işlemleri
+    public void addBook(Book book) {
+        books.add(book);
+    }
+    
+    public List<Book> getAllBooks() {
+        return new ArrayList<>(books);
+    }
+    
+    public Book findBookById(String id) {
+        return books.stream()
+                   .filter(book -> book.getId().equalsIgnoreCase(id))
+                   .findFirst()
+                   .orElse(null);
+    }
+    
+    public boolean deleteBook(String id) {
+        Book book = findBookById(id);
+        if (book != null) {
+            return books.remove(book);
+        }
+        return false;
+    }
+    
+    public List<Book> searchBooks(String query) {
+        String lowerQuery = query.toLowerCase();
+        List<Book> results = new ArrayList<>();
+        for (Book book : books) {
+            if (book.getId().toLowerCase().contains(lowerQuery) || 
+                book.getTitle().toLowerCase().contains(lowerQuery) ||
+                book.getAuthor().toLowerCase().contains(lowerQuery)) {
+                results.add(book);
+            }
+        }
+        return results;
+    }
+    
+    // Üye işlemleri
+    public void addMember(Member member) {
+        members.add(member);
+    }
+    
+    public List<Member> getAllMembers() {
+        return new ArrayList<>(members);
+    }
+    
+    public Member findMemberById(String id) {
+        return members.stream()
+                     .filter(member -> member.getId().equalsIgnoreCase(id))
+                     .findFirst()
+                     .orElse(null);
+    }
+    
+    public boolean deleteMember(String id) {
+        Member member = findMemberById(id);
+        if (member != null) {
+            return members.remove(member);
+        }
+        return false;
+    }
+    
+    public List<Member> searchMembers(String query) {
+        String lowerQuery = query.toLowerCase();
+        List<Member> results = new ArrayList<>();
+        for (Member member : members) {
+            if (member.getId().toLowerCase().contains(lowerQuery) || 
+                member.getName().toLowerCase().contains(lowerQuery) ||
+                member.getEmail().toLowerCase().contains(lowerQuery)) {
+                results.add(member);
+            }
+        }
+        return results;
+    }
+    
+    // Ödünç alma/iade işlemleri
+    public boolean borrowBook(String bookId) {
+        Book book = findBookById(bookId);
+        if (book != null && book.isAvailable()) {
+            book.setAvailable(false);
+            return true;
+        }
+        return false;
+    }
+    
+    public boolean returnBook(String bookId) {
+        Book book = findBookById(bookId);
+        if (book != null && !book.isAvailable()) {
+            book.setAvailable(true);
+            return true;
+        }
+        return false;
+    }
+}

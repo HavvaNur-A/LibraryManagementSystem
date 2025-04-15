@@ -1,0 +1,18 @@
+package com.library.model;
+
+import java.util.List;
+
+public class LibraryData {
+    private List<Book> books;
+    private List<Member> members;
+    
+    // Constructor
+    public LibraryData(List<Book> books, List<Member> members) {
+        this.books = books;
+        this.members = members;
+    }
+    
+    // Getter-Setter
+    public List<Book> getBooks() { return books; }
+    public List<Member> getMembers() { return members; }
+}

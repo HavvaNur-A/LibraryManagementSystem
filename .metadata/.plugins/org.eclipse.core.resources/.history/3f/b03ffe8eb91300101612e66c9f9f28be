@@ -1,0 +1,423 @@
+package com.library.ui;
+
+import com.library.controller.LibraryController;
+import com.library.model.Book;
+import com.library.model.Member;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.List;
+
+public class MainFrame extends JFrame {
+    private LibraryController controller;
+    
+    private JTabbedPane tabbedPane;
+    
+    // Book Panel components
+    private JPanel bookPanel;
+    private JTextField bookIdField, bookTitleField, bookAuthorField, bookSearchField;
+    private JButton addBookButton, listBooksButton, deleteBookButton, searchBookButton;
+    private JTextArea bookTextArea;
+    
+    // Member Panel components
+    private JPanel memberPanel;
+    private JTextField memberIdField, memberNameField, memberEmailField, memberSearchField;
+    private JButton addMemberButton, listMembersButton, deleteMemberButton, searchMemberButton;
+    private JTextArea memberTextArea;
+    
+    // Transaction Panel components (unchanged)
+    private JPanel transactionPanel;
+    private JTextField borrowBookIdField, borrowMemberIdField;
+    private JButton borrowButton, returnButton;
+    private JTextArea transactionTextArea;
+    
+    public MainFrame() {
+        try {
+            this.controller = new LibraryController();
+            initializeUI();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, 
+                "Veritabanı yüklenemedi: " + e.getMessage(),
+                "Kritik Hata",
+                JOptionPane.ERROR_MESSAGE);
+            System.exit(1);
+        }
+        controller = new LibraryController();
+        initializeUI();
+    }
+    
+    private void initializeUI() {
+        setTitle("Library Management System");
+        setSize(1000, 700); // Increased size for better layout
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        
+        tabbedPane = new JTabbedPane();
+        
+        createBookPanel();
+        createMemberPanel();
+        createTransactionPanel();
+        
+        tabbedPane.addTab("Book Management", bookPanel);
+        tabbedPane.addTab("Member Management", memberPanel);
+        tabbedPane.addTab("Transactions", transactionPanel);
+        
+        add(tabbedPane);
+    }
+
+    // ================== BOOK PANEL ================== //
+    private void createBookPanel() {
+        bookPanel = new JPanel(new BorderLayout());
+        
+        // Form panel
+        JPanel formPanel = new JPanel(new GridLayout(5, 2, 5, 5));
+        formPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        formPanel.add(new JLabel("Book ID:"));
+        bookIdField = new JTextField();
+        formPanel.add(bookIdField);
+        
+        formPanel.add(new JLabel("Title:"));
+        bookTitleField = new JTextField();
+        formPanel.add(bookTitleField);
+        
+        formPanel.add(new JLabel("Author:"));
+        bookAuthorField = new JTextField();
+        formPanel.add(bookAuthorField);
+        
+        formPanel.add(new JLabel("Search (ID/Title):"));
+        bookSearchField = new JTextField();
+        formPanel.add(bookSearchField);
+        
+        // Buttons
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 4, 5, 5));
+        addBookButton = new JButton("Add Book");
+        listBooksButton = new JButton("List All");
+        deleteBookButton = new JButton("Delete");
+        searchBookButton = new JButton("Search");
+        
+        buttonPanel.add(addBookButton);
+        buttonPanel.add(listBooksButton);
+        buttonPanel.add(deleteBookButton);
+        buttonPanel.add(searchBookButton);
+        
+        formPanel.add(buttonPanel);
+        
+        // Text area
+        bookTextArea = new JTextArea();
+        bookTextArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(bookTextArea);
+        
+        // Panel layout
+        bookPanel.add(formPanel, BorderLayout.NORTH);
+        bookPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        // Event listeners
+        addBookButton.addActionListener(e -> addBook());
+        listBooksButton.addActionListener(e -> listBooks());
+        deleteBookButton.addActionListener(e -> deleteBook());
+        searchBookButton.addActionListener(e -> searchBooks());
+    }
+    
+    private void addBook() {
+        String id = bookIdField.getText().trim();
+        String title = bookTitleField.getText().trim();
+        String author = bookAuthorField.getText().trim();
+        
+        if (id.isEmpty() || title.isEmpty() || author.isEmpty()) {
+            showError("Please fill all fields!");
+            return;
+        }
+        
+        controller.addBook(new Book(id, title, author));
+        showSuccess("Book added successfully!");
+        clearBookFields();
+        listBooks();
+    }
+    
+    private void deleteBook() {
+        String id = bookIdField.getText().trim();
+        
+        if (id.isEmpty()) {
+            showError("Please enter book ID!");
+            return;
+        }
+        
+        if (controller.deleteBook(id)) {
+            showSuccess("Book deleted successfully!");
+            clearBookFields();
+            listBooks();
+        } else {
+            showError("Book not found or could not be deleted!");
+        }
+    }
+    
+    private void searchBooks() {
+        String query = bookSearchField.getText().trim().toLowerCase();
+        
+        if (query.isEmpty()) {
+            listBooks();
+            return;
+        }
+        
+        List<Book> allBooks = controller.getAllBooks();
+        StringBuilder sb = new StringBuilder("Search Results:\n\n");
+        
+        for (Book book : allBooks) {
+            if (book.getId().toLowerCase().contains(query) || 
+                book.getTitle().toLowerCase().contains(query)) {
+                sb.append(formatBook(book)).append("\n");
+            }
+        }
+        
+        bookTextArea.setText(sb.toString());
+    }
+    
+    private String formatBook(Book book) {
+        return String.format("ID: %s\nTitle: %s\nAuthor: %s\nStatus: %s\n",
+            book.getId(),
+            book.getTitle(),
+            book.getAuthor(),
+            book.isAvailable() ? "Available" : "Borrowed");
+    }
+
+    // ================== MEMBER PANEL ================== //
+    private void createMemberPanel() {
+        memberPanel = new JPanel(new BorderLayout());
+        
+        // Form panel
+        JPanel formPanel = new JPanel(new GridLayout(5, 2, 5, 5));
+        formPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        formPanel.add(new JLabel("Member ID:"));
+        memberIdField = new JTextField();
+        formPanel.add(memberIdField);
+        
+        formPanel.add(new JLabel("Full Name:"));
+        memberNameField = new JTextField();
+        formPanel.add(memberNameField);
+        
+        formPanel.add(new JLabel("Email:"));
+        memberEmailField = new JTextField();
+        formPanel.add(memberEmailField);
+        
+        formPanel.add(new JLabel("Search (ID/Name):"));
+        memberSearchField = new JTextField();
+        formPanel.add(memberSearchField);
+        
+        // Buttons
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 4, 5, 5));
+        addMemberButton = new JButton("Add Member");
+        listMembersButton = new JButton("List All");
+        deleteMemberButton = new JButton("Delete");
+        searchMemberButton = new JButton("Search");
+        
+        buttonPanel.add(addMemberButton);
+        buttonPanel.add(listMembersButton);
+        buttonPanel.add(deleteMemberButton);
+        buttonPanel.add(searchMemberButton);
+        
+        formPanel.add(buttonPanel);
+        
+        // Text area
+        memberTextArea = new JTextArea();
+        memberTextArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(memberTextArea);
+        
+        // Panel layout
+        memberPanel.add(formPanel, BorderLayout.NORTH);
+        memberPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        // Event listeners
+        addMemberButton.addActionListener(e -> addMember());
+        listMembersButton.addActionListener(e -> listMembers());
+        deleteMemberButton.addActionListener(e -> deleteMember());
+        searchMemberButton.addActionListener(e -> searchMembers());
+    }
+    
+    private void deleteMember() {
+        String id = memberIdField.getText().trim();
+        
+        if (id.isEmpty()) {
+            showError("Please enter member ID!");
+            return;
+        }
+        
+        if (controller.deleteMember(id)) {
+            showSuccess("Member deleted successfully!");
+            clearMemberFields();
+            listMembers();
+        } else {
+            showError("Member not found or could not be deleted!");
+        }
+    }
+    
+    private void searchMembers() {
+        String query = memberSearchField.getText().trim().toLowerCase();
+        
+        if (query.isEmpty()) {
+            listMembers();
+            return;
+        }
+        
+        List<Member> allMembers = controller.getAllMembers();
+        StringBuilder sb = new StringBuilder("Search Results:\n\n");
+        
+        for (Member member : allMembers) {
+            if (member.getId().toLowerCase().contains(query) || 
+                member.getName().toLowerCase().contains(query)) {
+                sb.append(formatMember(member)).append("\n");
+            }
+        }
+        
+        memberTextArea.setText(sb.toString());
+    }
+    
+    private String formatMember(Member member) {
+        return String.format("ID: %s\nName: %s\nEmail: %s\n",
+            member.getId(),
+            member.getName(),
+            member.getEmail());
+    }
+
+    // ================== HELPER METHODS ================== //
+    private void showError(String message) {
+        JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
+    }
+    
+    private void showSuccess(String message) {
+        JOptionPane.showMessageDialog(this, message, "Success", JOptionPane.INFORMATION_MESSAGE);
+    }
+    
+    private void clearBookFields() {
+        bookIdField.setText("");
+        bookTitleField.setText("");
+        bookAuthorField.setText("");
+    }
+    
+    private void clearMemberFields() {
+        memberIdField.setText("");
+        memberNameField.setText("");
+        memberEmailField.setText("");
+    }
+
+    // ... (Keep existing transaction panel and other unchanged methods) ...
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new MainFrame().setVisible(true));
+    }
+ // ================== EKSİK METODLAR ================== //
+
+    private void addMember() {
+        String id = memberIdField.getText().trim();
+        String name = memberNameField.getText().trim();
+        String email = memberEmailField.getText().trim();
+        
+        if (id.isEmpty() || name.isEmpty() || email.isEmpty()) {
+            showError("Please fill all fields!");
+            return;
+        }
+        
+        controller.addMember(new Member(id, name, email));
+        showSuccess("Member added successfully!");
+        clearMemberFields();
+        listMembers();
+    }
+
+    private void listBooks() {
+        List<Book> books = controller.getAllBooks();
+        StringBuilder sb = new StringBuilder("All Books:\n\n");
+        
+        for (Book book : books) {
+            sb.append(formatBook(book)).append("\n");
+        }
+        
+        bookTextArea.setText(sb.toString());
+    }
+
+    private void listMembers() {
+        List<Member> members = controller.getAllMembers();
+        StringBuilder sb = new StringBuilder("All Members:\n\n");
+        
+        for (Member member : members) {
+            sb.append(formatMember(member)).append("\n");
+        }
+        
+        memberTextArea.setText(sb.toString());
+    }
+
+    private void createTransactionPanel() {
+        transactionPanel = new JPanel(new BorderLayout());
+        
+        // Form panel
+        JPanel formPanel = new JPanel(new GridLayout(3, 2, 5, 5));
+        formPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        formPanel.add(new JLabel("Book ID:"));
+        borrowBookIdField = new JTextField();
+        formPanel.add(borrowBookIdField);
+        
+        formPanel.add(new JLabel("Member ID:"));
+        borrowMemberIdField = new JTextField();
+        formPanel.add(borrowMemberIdField);
+        
+        // Buttons
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 5, 5));
+        borrowButton = new JButton("Borrow Book");
+        returnButton = new JButton("Return Book");
+        
+        buttonPanel.add(borrowButton);
+        buttonPanel.add(returnButton);
+        
+        formPanel.add(buttonPanel);
+        
+        // Text area
+        transactionTextArea = new JTextArea();
+        transactionTextArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(transactionTextArea);
+        
+        // Panel layout
+        transactionPanel.add(formPanel, BorderLayout.NORTH);
+        transactionPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        // Event listeners
+        borrowButton.addActionListener(e -> borrowBook());
+        returnButton.addActionListener(e -> returnBook());
+    }
+
+    private void borrowBook() {
+        String bookId = borrowBookIdField.getText().trim();
+        String memberId = borrowMemberIdField.getText().trim();
+        
+        if (bookId.isEmpty() || memberId.isEmpty()) {
+            showError("Please enter both book ID and member ID!");
+            return;
+        }
+        
+        if (controller.borrowBook(bookId)) {
+            showSuccess("Book borrowed successfully!");
+            transactionTextArea.append("Book " + bookId + " borrowed by member " + memberId + "\n");
+            listBooks(); // Refresh book list
+        } else {
+            showError("Book not available or not found!");
+        }
+    }
+
+    private void returnBook() {
+        String bookId = borrowBookIdField.getText().trim();
+        
+        if (bookId.isEmpty()) {
+            showError("Please enter book ID!");
+            return;
+        }
+        
+        if (controller.returnBook(bookId)) {
+            showSuccess("Book returned successfully!");
+            transactionTextArea.append("Book " + bookId + " returned\n");
+            listBooks(); // Refresh book list
+        } else {
+            showError("Book not found or already available!");
+        }
+    }
+}

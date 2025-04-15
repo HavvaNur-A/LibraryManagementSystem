@@ -1,0 +1,382 @@
+package com.library.ui;
+
+import javax.swing.JFrame;
+import com.library.controller.LibraryController;
+	import com.library.model.Book;
+	import com.library.model.Member;
+	import javax.swing.*;
+	import java.awt.*;
+	import java.awt.event.ActionEvent;
+	import java.awt.event.ActionListener;
+	import java.util.List;
+
+public class MainFrame extends JFrame {
+	
+	
+	    private LibraryController controller;
+	    
+	    private JTabbedPane tabbedPane;
+	    
+	    // Kitap Paneli bileşenleri
+	    private JPanel bookPanel;
+	    private JTextField bookIdField, bookTitleField, bookAuthorField;
+	    private JButton addBookButton, listBooksButton;
+	    private JTextArea bookTextArea;
+	    
+	    // Üye Paneli bileşenleri
+	    private JPanel memberPanel;
+	    private JTextField memberIdField, memberNameField, memberEmailField;
+	    private JButton addMemberButton, listMembersButton;
+	    private JTextArea memberTextArea;
+	    
+	    // Ödünç İşlemleri Paneli bileşenleri
+	    private JPanel transactionPanel;
+	    private JTextField borrowBookIdField, borrowMemberIdField;
+	    private JButton borrowButton, returnButton;
+	    private JTextArea transactionTextArea;
+	    
+	    public MainFrame() {
+	        controller = new LibraryController();
+	        initializeUI();
+	    }
+	    
+	    private void initializeUI() {
+	        setTitle("Kütüphane Yönetim Sistemi");
+	        setSize(800, 600);
+	        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	        setLocationRelativeTo(null);
+	        
+	        tabbedPane = new JTabbedPane();
+	        
+	        // Kitap Yönetim Paneli
+	        createBookPanel();
+	        tabbedPane.addTab("Kitap Yönetimi", bookPanel);
+	        
+	        // Üye Yönetim Paneli
+	        createMemberPanel();
+	        tabbedPane.addTab("Üye Yönetimi", memberPanel);
+	        
+	        // Ödünç İşlemleri Paneli
+	        createTransactionPanel();
+	        tabbedPane.addTab("Ödünç İşlemleri", transactionPanel);
+	        
+	        add(tabbedPane);
+	    }
+	    
+	    private void createBookPanel() {
+	        bookPanel = new JPanel(new BorderLayout());
+	        
+	        // Form paneli
+	        JPanel formPanel = new JPanel(new GridLayout(4, 2, 5, 5));
+	        formPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+	        
+	        formPanel.add(new JLabel("Kitap ID:"));
+	        bookIdField = new JTextField();
+	        formPanel.add(bookIdField);
+	        
+	        formPanel.add(new JLabel("Kitap Adı:"));
+	        bookTitleField = new JTextField();
+	        formPanel.add(bookTitleField);
+	        
+	        formPanel.add(new JLabel("Yazar:"));
+	        bookAuthorField = new JTextField();
+	        formPanel.add(bookAuthorField);
+	        
+	        addBookButton = new JButton("Kitap Ekle");
+	        listBooksButton = new JButton("Kitapları Listele");
+	        
+	        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+	        buttonPanel.add(addBookButton);
+	        buttonPanel.add(listBooksButton);
+	        
+	        formPanel.add(buttonPanel);
+	        
+	        // Text area
+	        bookTextArea = new JTextArea();
+	        bookTextArea.setEditable(false);
+	        JScrollPane scrollPane = new JScrollPane(bookTextArea);
+	        
+	        // Panel düzeni
+	        bookPanel.add(formPanel, BorderLayout.NORTH);
+	        bookPanel.add(scrollPane, BorderLayout.CENTER);
+	        
+	        // Olay dinleyicileri
+	        addBookButton.addActionListener(new ActionListener() {
+	            @Override
+	            public void actionPerformed(ActionEvent e) {
+	                addBook();
+	            }
+	        });
+	        
+	        listBooksButton.addActionListener(new ActionListener() {
+	            @Override
+	            public void actionPerformed(ActionEvent e) {
+	                listBooks();
+	            }
+	        });
+	    }
+	    
+	    private void addBook() {
+	        String id = bookIdField.getText().trim();
+	        String title = bookTitleField.getText().trim();
+	        String author = bookAuthorField.getText().trim();
+	        
+	        if (id.isEmpty() || title.isEmpty() || author.isEmpty()) {
+	            JOptionPane.showMessageDialog(this, "Lütfen tüm alanları doldurun!", "Hata", JOptionPane.ERROR_MESSAGE);
+	            return;
+	        }
+	        
+	        Book book = new Book(id, title, author);
+	        controller.addBook(book);
+	        
+	        JOptionPane.showMessageDialog(this, "Kitap başarıyla eklendi!", "Başarılı", JOptionPane.INFORMATION_MESSAGE);
+	        clearBookFields();
+	    }
+	    
+	    private void listBooks() {
+	        List<Book> books = controller.getAllBooks();
+	        StringBuilder sb = new StringBuilder();
+	        
+	        if (books.isEmpty()) {
+	            sb.append("Kütüphanede kitap bulunmamaktadır.");
+	        } else {
+	            sb.append("Kütüphanedeki Kitaplar:\n\n");
+	            for (Book book : books) {
+	                sb.append("ID: ").append(book.getId()).append("\n");
+	                sb.append("Başlık: ").append(book.getTitle()).append("\n");
+	                sb.append("Yazar: ").append(book.getAuthor()).append("\n");
+	                sb.append("Durum: ").append(book.isAvailable() ? "Mevcut" : "Ödünç Alınmış").append("\n\n");
+	            }
+	        }
+	        
+	        bookTextArea.setText(sb.toString());
+	    }
+	    
+	    private void clearBookFields() {
+	        bookIdField.setText("");
+	        bookTitleField.setText("");
+	        bookAuthorField.setText("");
+	    }
+	    
+	    private void createMemberPanel() {
+	        memberPanel = new JPanel(new BorderLayout());
+	        
+	        // Form paneli
+	        JPanel formPanel = new JPanel(new GridLayout(4, 2, 5, 5));
+	        formPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+	        
+	        formPanel.add(new JLabel("Üye ID:"));
+	        memberIdField = new JTextField();
+	        formPanel.add(memberIdField);
+	        
+	        formPanel.add(new JLabel("Ad Soyad:"));
+	        memberNameField = new JTextField();
+	        formPanel.add(memberNameField);
+	        
+	        formPanel.add(new JLabel("E-posta:"));
+	        memberEmailField = new JTextField();
+	        formPanel.add(memberEmailField);
+	        
+	        addMemberButton = new JButton("Üye Ekle");
+	        listMembersButton = new JButton("Üyeleri Listele");
+	        
+	        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+	        buttonPanel.add(addMemberButton);
+	        buttonPanel.add(listMembersButton);
+	        
+	        formPanel.add(buttonPanel);
+	        
+	        // Text area
+	        memberTextArea = new JTextArea();
+	        memberTextArea.setEditable(false);
+	        JScrollPane scrollPane = new JScrollPane(memberTextArea);
+	        
+	        // Panel düzeni
+	        memberPanel.add(formPanel, BorderLayout.NORTH);
+	        memberPanel.add(scrollPane, BorderLayout.CENTER);
+	        
+	        // Olay dinleyicileri
+	        addMemberButton.addActionListener(new ActionListener() {
+	            @Override
+	            public void actionPerformed(ActionEvent e) {
+	                addMember();
+	            }
+	        });
+	        
+	        listMembersButton.addActionListener(new ActionListener() {
+	            @Override
+	            public void actionPerformed(ActionEvent e) {
+	                listMembers();
+	            }
+	        });
+	    }
+	    
+	    private void addMember() {
+	        String id = memberIdField.getText().trim();
+	        String name = memberNameField.getText().trim();
+	        String email = memberEmailField.getText().trim();
+	        
+	        if (id.isEmpty() || name.isEmpty() || email.isEmpty()) {
+	            JOptionPane.showMessageDialog(this, "Lütfen tüm alanları doldurun!", "Hata", JOptionPane.ERROR_MESSAGE);
+	            return;
+	        }
+	        
+	        Member member = new Member(id, name, email);
+	        controller.addMember(member);
+	        
+	        JOptionPane.showMessageDialog(this, "Üye başarıyla eklendi!", "Başarılı", JOptionPane.INFORMATION_MESSAGE);
+	        clearMemberFields();
+	    }
+	    
+	    private void listMembers() {
+	        List<Member> members = controller.getAllMembers();
+	        StringBuilder sb = new StringBuilder();
+	        
+	        if (members.isEmpty()) {
+	            sb.append("Kayıtlı üye bulunmamaktadır.");
+	        } else {
+	            sb.append("Kayıtlı Üyeler:\n\n");
+	            for (Member member : members) {
+	                sb.append("ID: ").append(member.getId()).append("\n");
+	                sb.append("Ad Soyad: ").append(member.getName()).append("\n");
+	                sb.append("E-posta: ").append(member.getEmail()).append("\n\n");
+	            }
+	        }
+	        
+	        memberTextArea.setText(sb.toString());
+	    }
+	    
+	    private void clearMemberFields() {
+	        memberIdField.setText("");
+	        memberNameField.setText("");
+	        memberEmailField.setText("");
+	    }
+	    
+	    private void createTransactionPanel() {
+	        transactionPanel = new JPanel(new BorderLayout());
+	        
+	        // Form paneli
+	        JPanel formPanel = new JPanel(new GridLayout(3, 2, 5, 5));
+	        formPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+	        
+	        formPanel.add(new JLabel("Kitap ID:"));
+	        borrowBookIdField = new JTextField();
+	        formPanel.add(borrowBookIdField);
+	        
+	        formPanel.add(new JLabel("Üye ID:"));
+	        borrowMemberIdField = new JTextField();
+	        formPanel.add(borrowMemberIdField);
+	        
+	        borrowButton = new JButton("Ödünç Ver");
+	        returnButton = new JButton("İade Al");
+	        
+	        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+	        buttonPanel.add(borrowButton);
+	        buttonPanel.add(returnButton);
+	        
+	        formPanel.add(buttonPanel);
+	        
+	        // Text area
+	        transactionTextArea = new JTextArea();
+	        transactionTextArea.setEditable(false);
+	        JScrollPane scrollPane = new JScrollPane(transactionTextArea);
+	        
+	        // Panel düzeni
+	        transactionPanel.add(formPanel, BorderLayout.NORTH);
+	        transactionPanel.add(scrollPane, BorderLayout.CENTER);
+	        
+	        // Olay dinleyicileri
+	        borrowButton.addActionListener(new ActionListener() {
+	            @Override
+	            public void actionPerformed(ActionEvent e) {
+	                borrowBook();
+	            }
+	        });
+	        
+	        returnButton.addActionListener(new ActionListener() {
+	            @Override
+	            public void actionPerformed(ActionEvent e) {
+	                returnBook();
+	            }
+	        });
+	    }
+	    
+	    private void borrowBook() {
+	        String bookId = borrowBookIdField.getText().trim();
+	        String memberId = borrowMemberIdField.getText().trim();
+	        
+	        if (bookId.isEmpty() || memberId.isEmpty()) {
+	            JOptionPane.showMessageDialog(this, "Lütfen tüm alanları doldurun!", "Hata", JOptionPane.ERROR_MESSAGE);
+	            return;
+	        }
+	        
+	        Book book = controller.findBookById(bookId);
+	        Member member = controller.findMemberById(memberId);
+	        
+	        if (book == null) {
+	            JOptionPane.showMessageDialog(this, "Kitap bulunamadı!", "Hata", JOptionPane.ERROR_MESSAGE);
+	            return;
+	        }
+	        
+	        if (member == null) {
+	            JOptionPane.showMessageDialog(this, "Üye bulunamadı!", "Hata", JOptionPane.ERROR_MESSAGE);
+	            return;
+	        }
+	        
+	        if (!book.isAvailable()) {
+	            JOptionPane.showMessageDialog(this, "Kitap zaten ödünç alınmış!", "Hata", JOptionPane.ERROR_MESSAGE);
+	            return;
+	        }
+	        
+	        if (controller.borrowBook(bookId)) {
+	            transactionTextArea.append(member.getName() + " isimli üyeye " + book.getTitle() + " kitabı ödünç verildi.\n");
+	            clearTransactionFields();
+	        } else {
+	            JOptionPane.showMessageDialog(this, "Ödünç verme işlemi başarısız!", "Hata", JOptionPane.ERROR_MESSAGE);
+	        }
+	    }
+	    
+	    private void returnBook() {
+	        String bookId = borrowBookIdField.getText().trim();
+	        
+	        if (bookId.isEmpty()) {
+	            JOptionPane.showMessageDialog(this, "Lütfen kitap ID'sini girin!", "Hata", JOptionPane.ERROR_MESSAGE);
+	            return;
+	        }
+	        
+	        Book book = controller.findBookById(bookId);
+	        
+	        if (book == null) {
+	            JOptionPane.showMessageDialog(this, "Kitap bulunamadı!", "Hata", JOptionPane.ERROR_MESSAGE);
+	            return;
+	        }
+	        
+	        if (book.isAvailable()) {
+	            JOptionPane.showMessageDialog(this, "Kitap zaten kütüphanede mevcut!", "Hata", JOptionPane.ERROR_MESSAGE);
+	            return;
+	        }
+	        
+	        if (controller.returnBook(bookId)) {
+	            transactionTextArea.append(book.getTitle() + " kitabı iade alındı.\n");
+	            clearTransactionFields();
+	        } else {
+	            JOptionPane.showMessageDialog(this, "İade işlemi başarısız!", "Hata", JOptionPane.ERROR_MESSAGE);
+	        }
+	    }
+	    
+	    private void clearTransactionFields() {
+	        borrowBookIdField.setText("");
+	        borrowMemberIdField.setText("");
+	    }
+	    
+	    public static void main(String[] args) {
+	        SwingUtilities.invokeLater(new Runnable() {
+	            @Override
+	            public void run() {
+	                new MainFrame().setVisible(true);
+	            }
+	        });
+	    }
+	}
+
+}

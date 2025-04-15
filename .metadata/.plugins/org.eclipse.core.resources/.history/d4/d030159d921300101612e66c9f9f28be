@@ -1,0 +1,83 @@
+package com.library.controller;
+
+import com.library.model.Book;
+import com.library.model.Member;
+import java.util.ArrayList;
+import java.util.List;
+
+public class LibraryController {
+    private List<Book> books;
+    private List<Member> members;
+    
+    public LibraryController() {
+        this.books = new ArrayList<>();
+        this.members = new ArrayList<>();
+        initializeSampleData();
+    }
+    
+    private void initializeSampleData() {
+        // Örnek kitap verileri
+        addBook(new Book("B001", "1984", "George Orwell"));
+        addBook(new Book("B002", "Hayvan Çiftliği", "George Orwell"));
+        addBook(new Book("B003", "Suç ve Ceza", "Fyodor Dostoyevski"));
+        
+        // Örnek üye verileri
+        addMember(new Member("M001", "Ahmet Yılmaz", "ahmet@example.com"));
+        addMember(new Member("M002", "Ayşe Kaya", "ayse@example.com"));
+    }
+    
+    // Kitap işlemleri
+    public void addBook(Book book) {
+        books.add(book);
+    }
+    
+    public List<Book> getAllBooks() {
+        return new ArrayList<>(books);
+    }
+    
+    public Book findBookById(String id) {
+        for (Book book : books) {
+            if (book.getId().equals(id)) {
+                return book;
+            }
+        }
+        return null;
+    }
+    
+    // Üye işlemleri
+    public void addMember(Member member) {
+        members.add(member);
+    }
+    
+    public List<Member> getAllMembers() {
+        return new ArrayList<>(members);
+    }
+    
+    public Member findMemberById(String id) {
+        for (Member member : members) {
+            if (member.getId().equals(id)) {
+                return member;
+            }
+        }
+        return null;
+    }
+    
+    // Ödünç alma/iade işlemleri
+    public boolean borrowBook(String bookId) {
+        Book book = findBookById(bookId);
+        if (book != null && book.isAvailable()) {
+            book.setAvailable(false);
+            return true;
+        }
+        return false;
+    }
+    
+    public boolean returnBook(String bookId) {
+        Book book = findBookById(bookId);
+        if (book != null && !book.isAvailable()) {
+            book.setAvailable(true);
+            return true;
+        }
+        return false;
+    }
+}
