@@ -14,7 +14,7 @@ Kütüphane Yönetim Sisteminin temel amacı, bir kütüphanenin temel işlemler
 Sistem, gereksiz karmaşıklık olmadan temel işlevler sunan küçük ve orta ölçekli kitaplıklar düşünülerek tasarlanmıştır. Sezgisel arayüzü, kütüphane personelinin minimum eğitimle çalışmasını sağlayarak, sınırlı teknik kaynaklara sahip kütüphaneler için erişilebilir olmasını sağlar.
 
 
-Gelecekteki olası geliştirmeler şunları içerebilir:
+# Gelecekteki olası geliştirmeler şunları içerebilir:
 * Vade takibi ve vadesi geçmiş bildirimlerin uygulanması
 * İnce hesaplama özelliklerinin eklenmesi
 * Daha hızlı işlem için barkod tarayıcılarla entegrasyon
